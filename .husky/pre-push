@@ -1,0 +1,3 @@
+# Run only tests affected by changes since the upstream tracking branch.
+# Falls back to the full suite if there's no upstream or no changed files.
+npx vitest run --changed "@{u}" 2>/dev/null || npx vitest run

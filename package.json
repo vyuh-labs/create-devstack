@@ -1,0 +1,82 @@
+{
+  "name": "@vyuhlabs/create-devstack",
+  "version": "0.1.0",
+  "description": "Scaffold production-ready dev environments — devcontainers, Makefiles, quality presets, CI workflows",
+  "license": "MIT",
+  "author": "Vyuh Labs",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vyuh-labs/create-devstack.git"
+  },
+  "homepage": "https://github.com/vyuh-labs/create-devstack#readme",
+  "bugs": {
+    "url": "https://github.com/vyuh-labs/create-devstack/issues"
+  },
+  "bin": {
+    "create-devstack": "./dist/cli.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "dist/",
+    "templates/",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:changed": "vitest run --changed",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,js,mjs,cjs}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^7.0.0",
+    "@vyuhlabs/dxkit": "^1.3.0",
+    "picocolors": "^1.1.0",
+    "yaml": "^2.6.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.13.0",
+    "@types/node": "^20.0.0",
+    "eslint": "^9.13.0",
+    "eslint-config-prettier": "^9.1.0",
+    "globals": "^17.4.0",
+    "husky": "^9.1.6",
+    "lint-staged": "^15.2.10",
+    "prettier": "^3.3.3",
+    "typescript": "^5.4.0",
+    "typescript-eslint": "^8.11.0",
+    "vitest": "^2.1.4"
+  },
+  "keywords": [
+    "vyuh",
+    "devstack",
+    "scaffold",
+    "devcontainer",
+    "makefile",
+    "developer-experience",
+    "project-generator"
+  ]
+}
