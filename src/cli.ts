@@ -14,6 +14,37 @@ import { writeConfig } from './config';
 
 const VERSION = '0.3.0';
 
+const VALID_LANGUAGES = ['python', 'go', 'node', 'nextjs', 'rust', 'csharp'];
+const VALID_INFRA = ['postgres', 'redis'];
+
+/** Parse --lang python,go into a validated array. */
+function parseLangs(raw: string | undefined): string[] {
+  if (!raw) return [];
+  const langs = raw.split(',').map((l) => l.trim().toLowerCase());
+  for (const lang of langs) {
+    if (!VALID_LANGUAGES.includes(lang)) {
+      console.error(pc.red(`  Error: unknown language '${lang}'`));
+      console.error(`  Valid: ${VALID_LANGUAGES.join(', ')}`);
+      process.exit(1);
+    }
+  }
+  return langs;
+}
+
+/** Parse --infra postgres,redis into a validated array. */
+function parseInfra(raw: string | undefined): string[] {
+  if (!raw) return [];
+  const items = raw.split(',').map((l) => l.trim().toLowerCase());
+  for (const item of items) {
+    if (!VALID_INFRA.includes(item)) {
+      console.error(pc.red(`  Error: unknown infrastructure '${item}'`));
+      console.error(`  Valid: ${VALID_INFRA.join(', ')}`);
+      process.exit(1);
+    }
+  }
+  return items;
+}
+
 async function main(): Promise<void> {
   const { values, positionals } = parseArgs({
     options: {
@@ -21,6 +52,9 @@ async function main(): Promise<void> {
       version: { type: 'boolean', short: 'v', default: false },
       yes: { type: 'boolean', short: 'y', default: false },
       preset: { type: 'string', default: 'standard' },
+      lang: { type: 'string' },
+      infra: { type: 'string' },
+      description: { type: 'string', short: 'd' },
     },
     allowPositionals: true,
     strict: false,
@@ -53,7 +87,17 @@ async function main(): Promise<void> {
   if (isInit) {
     await runBrownfield(targetDir, nonInteractive, values.preset as string);
   } else {
-    await runGreenfield(targetDir, projectName, nonInteractive, values.preset as string);
+    const langs = parseLangs(values.lang as string | undefined);
+    const infra = parseInfra(values.infra as string | undefined);
+    await runGreenfield(
+      targetDir,
+      projectName,
+      nonInteractive,
+      values.preset as string,
+      langs,
+      infra,
+      (values.description as string) ?? '',
+    );
   }
 }
 
@@ -62,6 +106,9 @@ async function runGreenfield(
   projectName: string,
   nonInteractive: boolean,
   preset: string,
+  langs: string[],
+  infra: string[],
+  description: string,
 ): Promise<void> {
   if (fs.existsSync(targetDir)) {
     console.error(
@@ -73,16 +120,24 @@ async function runGreenfield(
 
   let config;
   if (nonInteractive) {
-    // Default greenfield: Python + standard preset + all default tools
+    if (langs.length === 0) {
+      console.error(pc.red('  Error: --yes requires --lang to specify languages.'));
+      console.error(`  Example: --yes --lang python,go`);
+      console.error(`  Valid: ${VALID_LANGUAGES.join(', ')}`);
+      // Clean up the directory we just created
+      fs.rmdirSync(targetDir);
+      process.exit(1);
+    }
+
     config = buildConfigFromAnswers(
       projectName,
-      '',
-      ['python'],
-      [],
+      description,
+      langs,
+      infra,
       preset as 'strict' | 'standard' | 'relaxed',
       ['docker', 'github_cli', 'precommit', 'claude_code'],
     );
-    console.log(`  ${pc.cyan('Non-interactive mode:')} Python, ${preset} preset`);
+    console.log(`  ${pc.cyan('Non-interactive:')} ${langs.join(', ')}, ${preset} preset`);
   } else {
     config = await runPrompts(projectName);
   }
@@ -122,7 +177,12 @@ async function runBrownfield(
     genDevcontainer = result.generateDevcontainer;
     shouldRunDxkit = result.runDxkit;
 
-    console.log(`  ${pc.cyan('Non-interactive mode:')} accepting detected stack, ${preset} preset`);
+    const detectedLangs = Object.entries(config.languages ?? {})
+      .filter(([, v]) => v?.enabled)
+      .map(([k]) => k);
+    console.log(
+      `  ${pc.cyan('Non-interactive:')} detected ${detectedLangs.join(', ') || 'no languages'}, ${preset} preset`,
+    );
   } else {
     const result = await runBrownfieldPrompts(targetDir, scan);
     config = result.config;
@@ -162,16 +222,21 @@ function printHelp(): void {
     npx @vyuhlabs/create-devstack init             Add to existing project
 
   ${pc.bold('Options:')}
-    --yes, -y        Accept defaults, no prompts
-    --preset <name>  Quality preset: strict, standard, relaxed (default: standard)
-    --version, -v    Show version
-    --help, -h       Show this help
+    --yes, -y              Accept defaults, no prompts
+    --lang <languages>     Languages: python,go,node,nextjs,rust,csharp
+    --infra <services>     Infrastructure: postgres,redis
+    --preset <name>        Quality preset: strict, standard (default), relaxed
+    -d, --description <s>  Project description
+    --version, -v          Show version
+    --help, -h             Show this help
 
   ${pc.bold('Examples:')}
-    npm create @vyuhlabs/devstack my-app                    Interactive
-    npm create @vyuhlabs/devstack my-app --yes              Non-interactive, defaults
-    npx @vyuhlabs/create-devstack init --yes                Auto-detect, accept all
-    npx @vyuhlabs/create-devstack init --yes --preset strict  Auto-detect, strict quality
+    npm create @vyuhlabs/devstack my-app                          Interactive
+    npm create @vyuhlabs/devstack my-app --yes --lang python      Python project
+    npm create @vyuhlabs/devstack my-app --yes --lang python,go --infra postgres
+    npm create @vyuhlabs/devstack my-app --yes --lang node --preset strict
+    npx @vyuhlabs/create-devstack init --yes                      Auto-detect
+    npx @vyuhlabs/create-devstack init --yes --preset strict
 `);
 }
 

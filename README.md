@@ -117,24 +117,32 @@ Works in GitHub Codespaces, local Docker, VS Code Remote Containers, JetBrains G
 
 ## CLI Options
 
-| Flag              | Description                                               |
-| ----------------- | --------------------------------------------------------- |
-| `--yes`, `-y`     | Accept defaults, no prompts                               |
-| `--preset <name>` | Quality preset: `strict`, `standard` (default), `relaxed` |
-| `--version`, `-v` | Show version                                              |
-| `--help`, `-h`    | Show help                                                 |
+| Flag                  | Description                                                                     |
+| --------------------- | ------------------------------------------------------------------------------- |
+| `--yes`, `-y`         | Accept defaults, no prompts                                                     |
+| `--lang <languages>`  | Languages: `python`, `go`, `node`, `nextjs`, `rust`, `csharp` (comma-separated) |
+| `--infra <services>`  | Infrastructure: `postgres`, `redis` (comma-separated)                           |
+| `--preset <name>`     | Quality preset: `strict`, `standard` (default), `relaxed`                       |
+| `-d`, `--description` | Project description                                                             |
+| `--version`, `-v`     | Show version                                                                    |
+| `--help`, `-h`        | Show help                                                                       |
+
+For greenfield, `--yes` requires `--lang` to specify at least one language. For brownfield (`init`), `--yes` auto-detects from the filesystem.
 
 ### Examples
 
 ```bash
-# Interactive (greenfield)
+# Interactive
 npm create @vyuhlabs/devstack my-app
 
-# Non-interactive with defaults
-npm create @vyuhlabs/devstack my-app --yes
+# Python project, standard quality
+npm create @vyuhlabs/devstack my-app --yes --lang python
 
-# Non-interactive with strict quality
-npm create @vyuhlabs/devstack my-app --yes --preset strict
+# Multi-language with postgres
+npm create @vyuhlabs/devstack my-app --yes --lang python,go --infra postgres
+
+# Node project with strict quality
+npm create @vyuhlabs/devstack my-app --yes --lang node --preset strict
 
 # Brownfield — auto-detect, accept all
 npx @vyuhlabs/create-devstack init --yes
