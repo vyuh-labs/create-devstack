@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-04-10
+
+### Fixed
+- **Node version detection** — bump dxkit dep to `^1.5.0`. `engines.node: ">=10"` no longer produces Node 10 in .project.yaml.
+- **Stealth passthrough** — `--stealth` now passes through to `dxkit init --stealth` so dxkit's generated files are also gitignored.
+
 ## [0.5.0] - 2026-04-10
 
 ### Added

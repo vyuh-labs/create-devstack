@@ -13,7 +13,7 @@ import { generateDevcontainer } from './generators/devcontainer';
 import { writeConfig } from './config';
 import { enableStealth } from './stealth';
 
-const VERSION = '0.5.0';
+const VERSION = '0.6.0';
 
 const VALID_LANGUAGES = ['python', 'go', 'node', 'nextjs', 'rust', 'csharp'];
 const VALID_INFRA = ['postgres', 'redis'];

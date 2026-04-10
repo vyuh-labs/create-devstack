@@ -1,6 +1,6 @@
 {
   "name": "@vyuhlabs/create-devstack",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Scaffold production-ready dev environments — devcontainers, Makefiles, quality presets, CI workflows",
   "license": "MIT",
   "author": "Vyuh Labs",
