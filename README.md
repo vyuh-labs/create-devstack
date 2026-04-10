@@ -123,11 +123,20 @@ Works in GitHub Codespaces, local Docker, VS Code Remote Containers, JetBrains G
 | `--lang <languages>`  | Languages: `python`, `go`, `node`, `nextjs`, `rust`, `csharp` (comma-separated) |
 | `--infra <services>`  | Infrastructure: `postgres`, `redis` (comma-separated)                           |
 | `--preset <name>`     | Quality preset: `strict`, `standard` (default), `relaxed`                       |
+| `--stealth`           | Gitignore generated files (local-only, not committed)                           |
 | `-d`, `--description` | Project description                                                             |
 | `--version`, `-v`     | Show version                                                                    |
 | `--help`, `-h`        | Show help                                                                       |
 
 For greenfield, `--yes` requires `--lang` to specify at least one language. For brownfield (`init`), `--yes` auto-detects from the filesystem.
+
+### Stealth Mode
+
+Use `--stealth` to keep generated files local — they're added to `.gitignore` so they won't be committed. Only files actually created in this run are gitignored (existing files are never touched). Consistent with dxkit's `/stealth-mode`.
+
+```bash
+npx @vyuhlabs/create-devstack init --yes --stealth
+```
 
 ### Examples
 
@@ -147,8 +156,8 @@ npm create @vyuhlabs/devstack my-app --yes --lang node --preset strict
 # Brownfield — auto-detect, accept all
 npx @vyuhlabs/create-devstack init --yes
 
-# Brownfield — strict preset
-npx @vyuhlabs/create-devstack init --yes --preset strict
+# Brownfield — local-only (stealth)
+npx @vyuhlabs/create-devstack init --yes --stealth
 ```
 
 ## Requirements
