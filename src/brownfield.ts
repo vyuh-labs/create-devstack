@@ -86,8 +86,8 @@ async function handleFreshConfig(scan: BrownfieldScan): Promise<BrownfieldResult
 
   const languages = await checkbox({
     message: 'Confirm languages (space to toggle)',
-    choices: allLangs.map((lang) => ({
-      name: `${lang} ${stack.versions[lang as keyof typeof stack.versions] ?? DEFAULT_VERSIONS[lang] ?? ''}`.trim(),
+    choices: allLangs.map((lang, i) => ({
+      name: `${i + 1}. ${lang} ${stack.versions[lang as keyof typeof stack.versions] ?? DEFAULT_VERSIONS[lang] ?? ''}`.trim(),
       value: lang,
       checked: detectedLangs.includes(lang),
     })),
@@ -102,12 +102,12 @@ async function handleFreshConfig(scan: BrownfieldScan): Promise<BrownfieldResult
     message: 'Infrastructure',
     choices: [
       {
-        name: `PostgreSQL ${DEFAULT_VERSIONS.postgres}`,
+        name: `1. PostgreSQL ${DEFAULT_VERSIONS.postgres}`,
         value: 'postgres',
         checked: detectedInfra.includes('postgres'),
       },
       {
-        name: `Redis ${DEFAULT_VERSIONS.redis}`,
+        name: `2. Redis ${DEFAULT_VERSIONS.redis}`,
         value: 'redis',
         checked: detectedInfra.includes('redis'),
       },
@@ -116,7 +116,7 @@ async function handleFreshConfig(scan: BrownfieldScan): Promise<BrownfieldResult
 
   const preset = await select<QualityPreset>({
     message: 'Quality preset',
-    choices: PRESET_NAMES.map((p) => ({ name: p, value: p })),
+    choices: PRESET_NAMES.map((p, i) => ({ name: `${i + 1}. ${p}`, value: p })),
     default: 'standard',
   });
 

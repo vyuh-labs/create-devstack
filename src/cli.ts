@@ -11,6 +11,7 @@ import { scanProject } from './detect';
 import { runBrownfieldPrompts, buildBrownfieldResult } from './brownfield';
 import { generateDevcontainer } from './generators/devcontainer';
 import { writeConfig } from './config';
+import { enableStealth } from './stealth';
 
 const VERSION = '0.4.0';
 
@@ -51,6 +52,7 @@ async function main(): Promise<void> {
       help: { type: 'boolean', short: 'h', default: false },
       version: { type: 'boolean', short: 'v', default: false },
       yes: { type: 'boolean', short: 'y', default: false },
+      stealth: { type: 'boolean', default: false },
       preset: { type: 'string', default: 'standard' },
       lang: { type: 'string' },
       infra: { type: 'string' },
@@ -74,6 +76,7 @@ async function main(): Promise<void> {
   const isInit = command === 'init';
   const projectName = isInit ? path.basename(process.cwd()) : command;
   const nonInteractive = !!values.yes;
+  const stealth = !!values.stealth;
 
   if (!projectName) {
     printHelp();
@@ -85,7 +88,7 @@ async function main(): Promise<void> {
   console.log(`\n  ${pc.bold('create-devstack')} v${VERSION}\n`);
 
   if (isInit) {
-    await runBrownfield(targetDir, nonInteractive, values.preset as string);
+    await runBrownfield(targetDir, nonInteractive, values.preset as string, stealth);
   } else {
     const langs = parseLangs(values.lang as string | undefined);
     const infra = parseInfra(values.infra as string | undefined);
@@ -97,6 +100,7 @@ async function main(): Promise<void> {
       langs,
       infra,
       (values.description as string) ?? '',
+      stealth,
     );
   }
 }
@@ -109,6 +113,7 @@ async function runGreenfield(
   langs: string[],
   infra: string[],
   description: string,
+  stealth: boolean,
 ): Promise<void> {
   if (fs.existsSync(targetDir)) {
     console.error(
@@ -145,14 +150,20 @@ async function runGreenfield(
   const results = generate(targetDir, config);
   printResults(results);
 
-  if (config.tools.claude_code) {
-    runDxkit(targetDir);
+  const dxkitRan = config.tools.claude_code ? runDxkit(targetDir) : false;
+
+  if (stealth) {
+    enableStealth(targetDir, results, dxkitRan);
   }
 
   console.log(`\n  ${pc.green('✓')} Done!\n`);
   console.log(`  Next steps:`);
   console.log(`    cd ${projectName}`);
-  console.log(`    git init && git add -A && git commit -m "Initial commit"`);
+  if (!stealth) {
+    console.log(`    git init && git add -A && git commit -m "Initial commit"`);
+  } else {
+    console.log(`    git init  ${pc.dim('(generated files are gitignored)')}`);
+  }
   console.log(`    make setup`);
   console.log(`    make doctor\n`);
 }
@@ -161,6 +172,7 @@ async function runBrownfield(
   targetDir: string,
   nonInteractive: boolean,
   preset: string,
+  stealth: boolean,
 ): Promise<void> {
   const scan = scanProject(targetDir);
 
@@ -203,8 +215,10 @@ async function runBrownfield(
 
   printResults(results);
 
-  if (shouldRunDxkit) {
-    runDxkit(targetDir);
+  const dxkitRan = shouldRunDxkit ? runDxkit(targetDir) : false;
+
+  if (stealth) {
+    enableStealth(targetDir, results, dxkitRan);
   }
 
   console.log(`\n  ${pc.green('✓')} Done!\n`);
@@ -226,6 +240,7 @@ function printHelp(): void {
     --lang <languages>     Languages: python,go,node,nextjs,rust,csharp
     --infra <services>     Infrastructure: postgres,redis
     --preset <name>        Quality preset: strict, standard (default), relaxed
+    --stealth              Gitignore generated files (local-only, not committed)
     -d, --description <s>  Project description
     --version, -v          Show version
     --help, -h             Show this help
@@ -236,7 +251,7 @@ function printHelp(): void {
     npm create @vyuhlabs/devstack my-app --yes --lang python,go --infra postgres
     npm create @vyuhlabs/devstack my-app --yes --lang node --preset strict
     npx @vyuhlabs/create-devstack init --yes                      Auto-detect
-    npx @vyuhlabs/create-devstack init --yes --preset strict
+    npx @vyuhlabs/create-devstack init --yes --stealth            Local-only
 `);
 }
 

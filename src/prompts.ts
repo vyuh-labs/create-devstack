@@ -46,27 +46,30 @@ export async function runPrompts(projectName: string): Promise<ProjectConfig> {
 
   const languages = await checkbox({
     message: 'Languages (space to toggle)',
-    choices: LANGUAGE_CHOICES.map((l) => ({
-      name: l.name,
+    choices: LANGUAGE_CHOICES.map((l, i) => ({
+      name: `${i + 1}. ${l.name}`,
       value: l.value,
     })),
   });
 
   const infra = await checkbox({
     message: 'Infrastructure',
-    choices: INFRA_CHOICES,
+    choices: INFRA_CHOICES.map((c, i) => ({
+      name: `${i + 1}. ${c.name}`,
+      value: c.value,
+    })),
   });
 
   const preset = await select<QualityPreset>({
     message: 'Quality preset',
-    choices: PRESET_NAMES.map((p) => ({ name: p, value: p })),
+    choices: PRESET_NAMES.map((p, i) => ({ name: `${i + 1}. ${p}`, value: p })),
     default: 'standard',
   });
 
   const tools = await checkbox({
     message: 'Tools',
-    choices: TOOL_CHOICES.map((t) => ({
-      name: t.name,
+    choices: TOOL_CHOICES.map((t, i) => ({
+      name: `${i + 1}. ${t.name}`,
       value: t.value,
       checked: t.default,
     })),
