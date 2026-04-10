@@ -7,7 +7,10 @@ const STEALTH_HEADER = '# create-devstack (stealth mode — local only, not comm
 
 /**
  * Add only the files that were actually created in this run to .gitignore.
- * Skipped files (already existed) are not added.
+ * Skipped files (already existed) are never touched.
+ *
+ * For dxkit files: reads .vyuh-dxkit.json manifest to get the exact list
+ * of files dxkit generated, rather than guessing with fs.existsSync.
  */
 export function enableStealth(
   targetDir: string,
@@ -21,11 +24,10 @@ export function enableStealth(
     existing = fs.readFileSync(gitignorePath, 'utf-8');
   }
 
-  // Collect paths that were created (not skipped)
+  // Collect paths that were created (not skipped) by create-devstack
   const createdPaths = results.filter((r) => r.result === 'created').map((r) => r.path);
 
   // Collapse file paths into directory entries where possible
-  // e.g. .devcontainer/Dockerfile.dev, .devcontainer/docker-compose.yml → .devcontainer/
   const dirs = new Set<string>();
   const files: string[] = [];
 
@@ -38,17 +40,22 @@ export function enableStealth(
     }
   }
 
-  // Add dxkit-generated paths if dxkit ran
+  // Read dxkit's manifest to get its generated files
   if (dxkitRan) {
-    // dxkit generates these top-level directories/files
-    const dxkitPaths = ['.claude/', 'CLAUDE.md', '.ai/', '.vyuh-dxkit.json'];
-    for (const p of dxkitPaths) {
-      const fullPath = path.join(targetDir, p.replace(/\/$/, ''));
-      if (fs.existsSync(fullPath)) {
-        dirs.add(p.endsWith('/') ? p : '');
-        if (!p.endsWith('/')) files.push(p);
+    const dxkitFiles = readDxkitManifest(targetDir);
+    if (dxkitFiles.length > 0) {
+      // Collapse into top-level directories
+      for (const f of dxkitFiles) {
+        const topDir = f.split('/')[0];
+        if (f.includes('/') && topDir.startsWith('.')) {
+          dirs.add(topDir + '/');
+        } else {
+          files.push(f);
+        }
       }
     }
+    // Always add the manifest itself
+    files.push('.vyuh-dxkit.json');
   }
 
   // Build the list of entries to add, excluding anything already in .gitignore
@@ -73,4 +80,25 @@ export function enableStealth(
   console.log(
     `  ${pc.green('✓')} .gitignore updated — ${newEntries.length} generated path${newEntries.length !== 1 ? 's' : ''} added (stealth mode)`,
   );
+}
+
+/**
+ * Read dxkit's manifest to get the list of files it generated.
+ * Returns file paths relative to the project root.
+ */
+function readDxkitManifest(targetDir: string): string[] {
+  const manifestPath = path.join(targetDir, '.vyuh-dxkit.json');
+  if (!fs.existsSync(manifestPath)) return [];
+
+  try {
+    const raw = fs.readFileSync(manifestPath, 'utf-8');
+    const manifest = JSON.parse(raw);
+    if (manifest.files && typeof manifest.files === 'object') {
+      return Object.keys(manifest.files);
+    }
+  } catch {
+    /* ignore parse errors */
+  }
+
+  return [];
 }
