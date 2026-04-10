@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import pc from 'picocolors';
 import { runPrompts } from './prompts';
-import { writeConfig } from './config';
+import { runGeneration, runDxkit } from './generator';
 
 const VERSION = '0.1.0';
 
@@ -47,12 +47,13 @@ async function main(): Promise<void> {
 
   const config = await runPrompts(projectName);
 
-  // Write .project.yaml
-  writeConfig(targetDir, config);
-  console.log(`  ${pc.green('✓')} .project.yaml`);
+  // Generate devcontainer + .project.yaml
+  runGeneration(targetDir, config);
 
-  // TODO: generators (Makefile, .project/, configs, devcontainer, CI)
-  // TODO: wire dxkit init
+  // Run dxkit for Makefile, scripts, configs, .claude/, CI
+  if (config.tools.claude_code) {
+    runDxkit(targetDir);
+  }
 
   console.log(`\n  ${pc.green('✓')} Done!\n`);
   if (!isInit) {
