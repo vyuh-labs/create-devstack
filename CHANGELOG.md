@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-04-10
+
+### Added
+- **`--stealth` flag** — gitignore only files actually created in this
+  run. Skipped files (already existed) are not touched. dxkit paths
+  added only if dxkit ran and files exist. Directory paths collapsed.
+  Consistent with dxkit's `/stealth-mode`.
+- **Numbered choices** in all interactive prompts for easier scanning.
+
 ## [0.4.0] - 2026-04-09
 
 ### Added

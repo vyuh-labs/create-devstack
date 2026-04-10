@@ -44,7 +44,7 @@ describe('non-interactive greenfield (--yes --lang)', () => {
       ['docker', 'claude_code'],
     );
 
-    const results = generate(tmpDir, config);
+    generate(tmpDir, config);
     expect(fs.existsSync(path.join(tmpDir, '.devcontainer', 'Dockerfile.dev'))).toBe(true);
 
     const dockerfile = fs.readFileSync(
