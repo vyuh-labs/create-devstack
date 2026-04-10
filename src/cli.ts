@@ -1,34 +1,45 @@
 #!/usr/bin/env node
 
+import { parseArgs } from 'node:util';
 import * as fs from 'fs';
 import * as path from 'path';
 import pc from 'picocolors';
-import { runPrompts } from './prompts';
+import { runPrompts, buildConfigFromAnswers } from './prompts';
 import { generate, runDxkit } from './generator';
 import { printResults } from './files';
 import { scanProject } from './detect';
-import { runBrownfieldPrompts } from './brownfield';
+import { runBrownfieldPrompts, buildBrownfieldResult } from './brownfield';
 import { generateDevcontainer } from './generators/devcontainer';
 import { writeConfig } from './config';
 
 const VERSION = '0.2.0';
 
 async function main(): Promise<void> {
-  const args = process.argv.slice(2);
+  const { values, positionals } = parseArgs({
+    options: {
+      help: { type: 'boolean', short: 'h', default: false },
+      version: { type: 'boolean', short: 'v', default: false },
+      yes: { type: 'boolean', short: 'y', default: false },
+      preset: { type: 'string', default: 'standard' },
+    },
+    allowPositionals: true,
+    strict: false,
+  });
 
-  if (args.includes('--version') || args.includes('-v')) {
-    console.log(`create-devstack v${VERSION}`);
-    return;
-  }
-
-  if (args.includes('--help') || args.includes('-h')) {
+  if (values.help) {
     printHelp();
     return;
   }
 
-  // Determine mode: greenfield (name arg) or brownfield (init)
-  const isInit = args[0] === 'init';
-  const projectName = isInit ? path.basename(process.cwd()) : args[0];
+  if (values.version) {
+    console.log(`create-devstack v${VERSION}`);
+    return;
+  }
+
+  const command = positionals[0];
+  const isInit = command === 'init';
+  const projectName = isInit ? path.basename(process.cwd()) : command;
+  const nonInteractive = !!values.yes;
 
   if (!projectName) {
     printHelp();
@@ -40,15 +51,18 @@ async function main(): Promise<void> {
   console.log(`\n  ${pc.bold('create-devstack')} v${VERSION}\n`);
 
   if (isInit) {
-    // Brownfield: existing project
-    await runBrownfield(targetDir);
+    await runBrownfield(targetDir, nonInteractive, values.preset as string);
   } else {
-    // Greenfield: new project
-    await runGreenfield(targetDir, projectName);
+    await runGreenfield(targetDir, projectName, nonInteractive, values.preset as string);
   }
 }
 
-async function runGreenfield(targetDir: string, projectName: string): Promise<void> {
+async function runGreenfield(
+  targetDir: string,
+  projectName: string,
+  nonInteractive: boolean,
+  preset: string,
+): Promise<void> {
   if (fs.existsSync(targetDir)) {
     console.error(
       pc.red(`  Error: ${targetDir} already exists. Use 'init' for existing projects.`),
@@ -57,7 +71,22 @@ async function runGreenfield(targetDir: string, projectName: string): Promise<vo
   }
   fs.mkdirSync(targetDir, { recursive: true });
 
-  const config = await runPrompts(projectName);
+  let config;
+  if (nonInteractive) {
+    // Default greenfield: Python + standard preset + all default tools
+    config = buildConfigFromAnswers(
+      projectName,
+      '',
+      ['python'],
+      [],
+      preset as 'strict' | 'standard' | 'relaxed',
+      ['docker', 'github_cli', 'precommit', 'claude_code'],
+    );
+    console.log(`  ${pc.cyan('Non-interactive mode:')} Python, ${preset} preset`);
+  } else {
+    config = await runPrompts(projectName);
+  }
+
   const results = generate(targetDir, config);
   printResults(results);
 
@@ -73,22 +102,40 @@ async function runGreenfield(targetDir: string, projectName: string): Promise<vo
   console.log(`    make doctor\n`);
 }
 
-async function runBrownfield(targetDir: string): Promise<void> {
+async function runBrownfield(
+  targetDir: string,
+  nonInteractive: boolean,
+  preset: string,
+): Promise<void> {
   const scan = scanProject(targetDir);
-  const {
-    config,
-    strategy,
-    generateDevcontainer: genDevcontainer,
-    runDxkit: shouldRunDxkit,
-  } = await runBrownfieldPrompts(targetDir, scan);
+
+  let config, strategy, genDevcontainer, shouldRunDxkit;
+
+  if (nonInteractive) {
+    const result = buildBrownfieldResult(
+      targetDir,
+      scan,
+      preset as 'strict' | 'standard' | 'relaxed',
+    );
+    config = result.config;
+    strategy = result.strategy;
+    genDevcontainer = result.generateDevcontainer;
+    shouldRunDxkit = result.runDxkit;
+
+    console.log(`  ${pc.cyan('Non-interactive mode:')} accepting detected stack, ${preset} preset`);
+  } else {
+    const result = await runBrownfieldPrompts(targetDir, scan);
+    config = result.config;
+    strategy = result.strategy;
+    genDevcontainer = result.generateDevcontainer;
+    shouldRunDxkit = result.runDxkit;
+  }
 
   const results = [];
 
-  // Write .project.yaml (always — it's the config source for dxkit)
   writeConfig(targetDir, config);
   results.push({ path: '.project.yaml', result: 'created' as const });
 
-  // Generate devcontainer if requested
   if (genDevcontainer && config.tools.docker) {
     const devcontainerResults = generateDevcontainer(targetDir, config, strategy);
     results.push(...devcontainerResults);
@@ -96,7 +143,6 @@ async function runBrownfield(targetDir: string): Promise<void> {
 
   printResults(results);
 
-  // Run dxkit if requested
   if (shouldRunDxkit) {
     runDxkit(targetDir);
   }
@@ -111,13 +157,21 @@ function printHelp(): void {
   console.log(`
   ${pc.bold('create-devstack')} v${VERSION}
 
-  Usage:
+  ${pc.bold('Usage:')}
     npm create @vyuhlabs/devstack <project-name>   Create a new project
     npx @vyuhlabs/create-devstack init             Add to existing project
 
-  Options:
+  ${pc.bold('Options:')}
+    --yes, -y        Accept defaults, no prompts
+    --preset <name>  Quality preset: strict, standard, relaxed (default: standard)
     --version, -v    Show version
     --help, -h       Show this help
+
+  ${pc.bold('Examples:')}
+    npm create @vyuhlabs/devstack my-app                    Interactive
+    npm create @vyuhlabs/devstack my-app --yes              Non-interactive, defaults
+    npx @vyuhlabs/create-devstack init --yes                Auto-detect, accept all
+    npx @vyuhlabs/create-devstack init --yes --preset strict  Auto-detect, strict quality
 `);
 }
 
