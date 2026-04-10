@@ -150,7 +150,7 @@ async function runGreenfield(
   const results = generate(targetDir, config);
   printResults(results);
 
-  const dxkitRan = config.tools.claude_code ? runDxkit(targetDir) : false;
+  const dxkitRan = config.tools.claude_code ? runDxkit(targetDir, stealth) : false;
 
   if (stealth) {
     enableStealth(targetDir, results, dxkitRan);
@@ -215,7 +215,7 @@ async function runBrownfield(
 
   printResults(results);
 
-  const dxkitRan = shouldRunDxkit ? runDxkit(targetDir) : false;
+  const dxkitRan = shouldRunDxkit ? runDxkit(targetDir, stealth) : false;
 
   if (stealth) {
     enableStealth(targetDir, results, dxkitRan);

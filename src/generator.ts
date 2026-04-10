@@ -27,11 +27,15 @@ export function generate(
 }
 
 /** Call dxkit init --full to generate Makefile, scripts, configs, .claude/, etc. */
-export function runDxkit(targetDir: string): boolean {
-  console.log(`\n  Running ${pc.cyan('@vyuhlabs/dxkit init --full --detect --yes')}...`);
+export function runDxkit(targetDir: string, stealth = false): boolean {
+  const flags = ['--full', '--detect', '--yes'];
+  if (stealth) flags.push('--stealth');
+
+  const cmd = `npx @vyuhlabs/dxkit init ${flags.join(' ')}`;
+  console.log(`\n  Running ${pc.cyan(cmd)}...`);
 
   try {
-    execSync('npx @vyuhlabs/dxkit init --full --detect --yes', {
+    execSync(cmd, {
       cwd: targetDir,
       stdio: 'pipe',
     });
