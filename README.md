@@ -160,6 +160,33 @@ npx @vyuhlabs/create-devstack init --yes
 npx @vyuhlabs/create-devstack init --yes --stealth
 ```
 
+## After Setup
+
+Once create-devstack and dxkit have generated your project, you get:
+
+```bash
+make help          # See all available commands
+make doctor        # Verify your setup
+make setup         # Install language tools + authenticate cloud services
+make test          # Run tests
+make quality       # Run linters + quality checks
+make fix           # Auto-fix formatting and lint issues
+make check         # Full pre-commit validation (quality + tests)
+make session-start # Start an AI-assisted dev session (requires Claude Code)
+```
+
+Use Claude Code for AI-powered analysis:
+
+```bash
+/health            # 6-dimension codebase health audit
+/vulnerabilities   # CWE-classified security scan
+/quality           # Lint + AI review
+/test-gaps         # Find untested critical code
+/dev-report        # Developer activity report
+```
+
+See the [dxkit README](https://github.com/vyuh-labs/dxkit#readme) for the full list of 30+ commands and 20 agents.
+
 ## Requirements
 
 - Node.js >= 18
