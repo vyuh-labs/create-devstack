@@ -88,6 +88,22 @@ tools:
   gcloud: false
 ```
 
+## Brownfield (Existing Projects)
+
+```bash
+cd existing-project
+npx @vyuhlabs/create-devstack init
+```
+
+The brownfield flow:
+
+1. **Scans** your project — detects languages, versions, frameworks, test runners, infrastructure, and tools
+2. **Shows** what it found and lets you confirm or adjust
+3. **Respects** existing files — won't overwrite your `.devcontainer/`, `.claude/`, or configs
+4. **Generates** only what's missing (`.project.yaml`, devcontainer, then delegates to dxkit)
+
+If `.project.yaml` already exists, you can keep it or reconfigure. If it's malformed, create-devstack falls back to detection.
+
 ## Devcontainer
 
 The generated `.devcontainer/` is fully conditional:

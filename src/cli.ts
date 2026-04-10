@@ -11,7 +11,7 @@ import { runBrownfieldPrompts } from './brownfield';
 import { generateDevcontainer } from './generators/devcontainer';
 import { writeConfig } from './config';
 
-const VERSION = '0.1.0';
+const VERSION = '0.2.0';
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2);

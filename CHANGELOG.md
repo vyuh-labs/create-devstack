@@ -7,8 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-04-09
+
 ### Added
-- Package skeleton with TypeScript, ESLint, Prettier, Vitest, Husky
-- CI workflow (GitHub Actions)
-- Type definitions for `.project.yaml` schema
-- CLI entry point with `--help` and `--version`
+- **Brownfield flow** — `npx @vyuhlabs/create-devstack init` on existing
+  projects. Detects languages, frameworks, infrastructure, and tools via
+  dxkit's `detect()`. Presents detected stack for user confirmation.
+  Handles existing `.project.yaml` (keep/reconfigure), existing
+  `.devcontainer/` (skip), and malformed configs (fallback to detection).
+- **Detection module** — wraps dxkit's `detect()` with file-exists checks
+  for devcontainer, Makefile, CI workflows, .claude/, etc.
+- **Brownfield prompts** — confirm/adjust detected stack, conflict strategy,
+  selective generation (skip existing devcontainer/.claude/).
+
+## [0.1.0] - 2026-04-09
+
+### Added
+- **Greenfield flow** — `npm create @vyuhlabs/devstack <project-name>`.
+  Interactive wizard for language, infrastructure, quality preset, and
+  tool selection.
+- **Devcontainer generator** — Dockerfile.dev, docker-compose.yml,
+  devcontainer.json, post-create.sh with conditional language/infra/tool
+  blocks. Supports Python, Go, Node.js, Next.js, Rust, C#, PostgreSQL,
+  Redis.
+- **`.project.yaml` generation** — config-as-code from wizard answers.
+  Quality presets: strict (95%), standard (80%), relaxed (60%).
+- **dxkit integration** — calls `dxkit init --full` after generation.
+  dxkit reads `.project.yaml` and generates Makefile, scripts, CI, configs,
+  `.claude/`.
+- **Template engine** — imports `processTemplate()` from `@vyuhlabs/dxkit`.
+- Package skeleton: TypeScript, ESLint, Prettier, Vitest, husky + lint-staged.
+- CI workflow + publish workflow (GitHub Actions, npm provenance).
