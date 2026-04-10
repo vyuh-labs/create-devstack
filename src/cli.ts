@@ -12,7 +12,7 @@ import { runBrownfieldPrompts, buildBrownfieldResult } from './brownfield';
 import { generateDevcontainer } from './generators/devcontainer';
 import { writeConfig } from './config';
 
-const VERSION = '0.2.0';
+const VERSION = '0.3.0';
 
 async function main(): Promise<void> {
   const { values, positionals } = parseArgs({

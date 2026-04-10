@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-04-09
+
+### Added
+- **`--yes` flag** for non-interactive mode. Greenfield defaults to
+  Python + standard preset + default tools. Brownfield auto-accepts
+  detected stack. Both support `--preset` flag (strict/standard/relaxed).
+- Proper argument parsing via `parseArgs`.
+- CLI `--help` with usage examples.
+- Documentation: CLI Options section in README, updated CONTRIBUTING
+  architecture diagram.
+
 ## [0.2.0] - 2026-04-09
 
 ### Added
