@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-04-09
+
+### Added
+- **`--lang` flag** — specify languages for greenfield: `--lang python,go`
+- **`--infra` flag** — specify infrastructure: `--infra postgres,redis`
+- **`-d`/`--description` flag** — set project description
+- Validation: `--yes` now requires `--lang` for greenfield (no more
+  surprising defaults). Brownfield `--yes` still auto-detects.
+- Clear error messages for invalid language/infra names.
+
 ## [0.3.0] - 2026-04-09
 
 ### Added

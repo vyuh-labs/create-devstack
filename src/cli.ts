@@ -12,7 +12,7 @@ import { runBrownfieldPrompts, buildBrownfieldResult } from './brownfield';
 import { generateDevcontainer } from './generators/devcontainer';
 import { writeConfig } from './config';
 
-const VERSION = '0.3.0';
+const VERSION = '0.4.0';
 
 const VALID_LANGUAGES = ['python', 'go', 'node', 'nextjs', 'rust', 'csharp'];
 const VALID_INFRA = ['postgres', 'redis'];
