@@ -23,10 +23,12 @@ npm test               # Run tests in watch mode
 
 ```
 src/
-  cli.ts                 # Entry point, argument parsing
+  cli.ts                 # Entry point, argument parsing (parseArgs)
   index.ts               # Public API exports
   types.ts               # Type definitions (.project.yaml schema)
-  prompts.ts             # Interactive wizard
+  prompts.ts             # Interactive greenfield wizard
+  brownfield.ts          # Brownfield prompts + non-interactive builder
+  detect.ts              # Wraps dxkit detect() + file-exists checks
   config.ts              # .project.yaml read/write
   presets.ts              # Quality presets (strict/standard/relaxed)
   template-engine.ts     # Wrapper over dxkit's processTemplate
@@ -40,7 +42,11 @@ templates/
 
 test/
   smoke.test.ts          # End-to-end greenfield test
+  brownfield-smoke.test.ts # End-to-end brownfield test
+  non-interactive.test.ts  # --yes flag tests
   devcontainer.test.ts   # Devcontainer generator tests
+  brownfield.test.ts     # Brownfield result builder tests
+  detect.test.ts         # Detection module tests
   template-engine.test.ts
   config.test.ts
   presets.test.ts

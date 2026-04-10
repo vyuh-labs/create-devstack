@@ -115,6 +115,34 @@ The generated `.devcontainer/` is fully conditional:
 
 Works in GitHub Codespaces, local Docker, VS Code Remote Containers, JetBrains Gateway, or the devcontainer CLI.
 
+## CLI Options
+
+| Flag              | Description                                               |
+| ----------------- | --------------------------------------------------------- |
+| `--yes`, `-y`     | Accept defaults, no prompts                               |
+| `--preset <name>` | Quality preset: `strict`, `standard` (default), `relaxed` |
+| `--version`, `-v` | Show version                                              |
+| `--help`, `-h`    | Show help                                                 |
+
+### Examples
+
+```bash
+# Interactive (greenfield)
+npm create @vyuhlabs/devstack my-app
+
+# Non-interactive with defaults
+npm create @vyuhlabs/devstack my-app --yes
+
+# Non-interactive with strict quality
+npm create @vyuhlabs/devstack my-app --yes --preset strict
+
+# Brownfield — auto-detect, accept all
+npx @vyuhlabs/create-devstack init --yes
+
+# Brownfield — strict preset
+npx @vyuhlabs/create-devstack init --yes --preset strict
+```
+
 ## Requirements
 
 - Node.js >= 18
