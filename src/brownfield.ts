@@ -209,7 +209,7 @@ export function buildBrownfieldResult(
   if (stack.infrastructure.postgres) enableInfra(config, 'postgres');
   if (stack.infrastructure.redis) enableInfra(config, 'redis');
 
-  config.tools.docker = scan.existing.devcontainer || stack.infrastructure.docker;
+  config.tools.docker = true; // default to true — devcontainer is the point
   config.tools.claude_code = true;
   config.tools.gcloud = stack.tools.gcloud;
   config.tools.pulumi = stack.tools.pulumi;
